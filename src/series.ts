@@ -1,0 +1,199 @@
+import type {
+	AxiosInstance,
+	AxiosResponse,
+	CancelToken,
+	CancelTokenSource,
+	InternalAxiosRequestConfig
+} from 'axios'
+import axios from 'axios'
+import { extend } from 'js-cool'
+
+// export const namespace = 'axios-series' as const
+
+export interface SeriesObject {
+	promiseKey: symbol
+	url: string
+	promise: Promise<any>
+	source: CancelTokenSource
+	abortController: AbortController
+}
+
+export interface SeriesCurrentStateType {
+	lastRequestTime: number
+	retryCount: number
+}
+
+export interface SeriesRequestOptions<D = any> extends InternalAxiosRequestConfig<D> {
+	['axios-series']?: any
+	unique?: boolean
+	requestOptions?: SeriesRequestOptions
+	cancelToken?: CancelToken
+	type?: string
+	error?: string
+}
+
+export interface SeriesConfig<D = any> extends InternalAxiosRequestConfig<D> {
+	unique?: boolean
+	setHeaders?(instance: AxiosInstance): void
+	onRequest?(
+		config: InternalAxiosRequestConfig,
+		requestOptions: SeriesRequestOptions
+	): InternalAxiosRequestConfig | Promise<InternalAxiosRequestConfig>
+	onRequestError?(error: any): void
+	onResponse?(
+		res: AxiosResponse<any>,
+		requestOptions: SeriesRequestOptions
+	): AxiosResponse<any> | Promise<AxiosResponse<any>>
+	onResponseError?(error: any): void
+	onError?(error: any): void
+	onCancel?(error: any): void
+}
+
+/**
+ * the config for retry when initialize and return
+ *
+ * @param  config - SeriesRequestOptions
+ * @return currentState
+ */
+function getCurrentState(config: SeriesRequestOptions): SeriesCurrentStateType {
+	const currentState = config['axios-series'] || {}
+	currentState.retryCount = currentState.retryCount || 0
+	config['axios-series'] = currentState
+	return currentState
+}
+
+/**
+ * Series class
+ *
+ * @return Promise
+ */
+class Series {
+	axiosInstance: AxiosInstance = null as unknown as AxiosInstance
+	waiting: Array<SeriesObject> = [] // Request Queue
+	unique: boolean // Whether to cancel the previous similar requests, default: false
+	onCancel // Callback when request is cancelled
+	constructor({ unique, onCancel, ...defaultOptions }: SeriesConfig) {
+		this.unique = unique ?? false
+		this.onCancel = onCancel ?? null
+		// Initialization method
+		this.init(defaultOptions)
+		return this
+	}
+
+	/**
+	 * Initialization
+	 */
+	public init(defaultOptions: SeriesConfig): void {
+		const {
+			setHeaders,
+			onRequest,
+			onRequestError,
+			onResponse,
+			onResponseError,
+			onError,
+			...options
+		} = defaultOptions
+		if (!this.axiosInstance) this.axiosInstance = axios.create(options)
+		// Set request headers
+		setHeaders && setHeaders(this.axiosInstance)
+		// Adding a request interceptor
+		onRequest &&
+			this.axiosInstance.interceptors.request.use(
+				(config: InternalAxiosRequestConfig) => {
+					const currentState = getCurrentState(config)
+					currentState.lastRequestTime = Date.now()
+					if (currentState.retryCount > 0) return config // retry re-requests the interface without executing onRequest again
+					return onRequest(config, (config as any).requestOptions)
+				},
+				(err: any) => {
+					onRequestError && onRequestError(err)
+					onError && onError(err)
+					return Promise.reject(err)
+				}
+			)
+		// Adding a response interceptor
+		onResponse &&
+			this.axiosInstance.interceptors.response.use(
+				res => {
+					return onResponse(res, (res.config as any).requestOptions)
+				},
+				(err: any): Promise<any> => {
+					const config: any = err.config
+					// No request config
+					if (!config) {
+						onResponseError && onResponseError(err)
+						onError && onError(err)
+						return Promise.reject(err)
+					}
+					const currentState = getCurrentState(config)
+					currentState.retryCount += 1
+					onResponseError && onResponseError(err)
+					onError && onError(err)
+					return Promise.reject(err)
+				}
+			)
+	}
+
+	/**
+	 * Create request
+	 */
+	public create(options: SeriesRequestOptions): Promise<any> {
+		const { unique = this.unique, url = '' } = options
+		const promiseKey = Symbol('promiseKey')
+		const abortController = new AbortController()
+		const source: CancelTokenSource = axios.CancelToken.source()
+		options.requestOptions = extend(true, {}, options) as unknown as SeriesRequestOptions
+		options.cancelToken = source.token
+		options.signal = abortController.signal
+		// eslint-disable-next-line no-async-promise-executor
+		const promise = new Promise(async (resolve, reject) => {
+			// Interface must return in order or need to cancel url same request
+			if (unique) {
+				let len = this.waiting.length
+				while (len > 0) {
+					len--
+					if (this.waiting[len].url === url) {
+						if (unique) {
+							this.waiting.splice(len, 1)[0].source.cancel('request canceled')
+							// abortController.abort()
+						} else {
+							try {
+								await this.waiting[len]
+								// await this.waiting.splice(len, 1)[0].promise
+							} catch {
+								this.waiting.splice(len, 1)
+								console.info('the task has been dropped')
+							}
+						}
+					}
+				}
+			}
+			// running
+			this.axiosInstance(options)
+				.then((res: any) => {
+					// Request success
+					resolve(res)
+				})
+				.catch((err: any) => {
+					// Request cancelled
+					if (axios.isCancel(err)) this.onCancel && this.onCancel(err)
+					// Request error
+					else reject(err)
+				})
+				.finally(() => {
+					const index = this.waiting.findIndex((el: any) => el.promiseKey === promiseKey)
+					index > -1 && this.waiting.splice(index, 1)
+				})
+		})
+		this.waiting.push({
+			promiseKey,
+			url,
+			promise,
+			source,
+			abortController
+		})
+		return promise
+	}
+}
+
+export { Series as default }
