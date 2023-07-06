@@ -46,7 +46,7 @@ $ yarn add axios-series
 
 ```js
 // {app_root}/src/plugins/axios.js
-import { getCookie, setCookie } from 'axios-series'
+import { getCookie, setCookie } from 'js-cool'
 import AxiosSeries from 'axios-series'
 
 /**
