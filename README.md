@@ -25,6 +25,22 @@ A serializer for axios
 
 </div>
 
+- [axiosSeries](#axios-series)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Add serializer feature to axios](#add-serializer-feature-to-axios)
+    - [or axios instance](#or-axios-instance)
+  - [Behavior](#behavior)
+    - [Option.unique](#unique)
+    - [Option.orderly](#unique)
+  - [API Reference](#api-reference)
+    - [axiosSeries](#axiosseries)
+    - [axiosSeries.clear](#axiosseriesclear)
+    - [axiosSeries.series](#axiosseriesseries)
+  - [Using unpkg CDN](#using-unpkg-cdn)
+  - [Support & Issues](#support--issues)
+  - [License](#license)
+
 ## Installing
 
 ```bash
