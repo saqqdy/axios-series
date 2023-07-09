@@ -28,6 +28,7 @@ When multiple requests are made to the same interface in a short period of time,
 </div>
 
 - [axiosSeries](#axios-series)
+  - [Experience online](#experience-online)
   - [Installation](#installation)
   - [Usage](#usage)
     - [Add serializer feature to axios](#add-serializer-feature-to-axios)
@@ -42,6 +43,10 @@ When multiple requests are made to the same interface in a short period of time,
   - [Using unpkg CDN](#using-unpkg-cdn)
   - [Support & Issues](#support--issues)
   - [License](#license)
+
+## Experience online
+
+Experience the axios-series features online [Edit in CodeSandbox](https://codesandbox.io/p/sandbox/github/saqqdy/axios-series/tree/master/examples/axios-series-demo)
 
 ## Installing
 

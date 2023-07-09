@@ -25,6 +25,10 @@
 
 </div>
 
+## 体验
+
+在线体验axios-series功能 [Edit in CodeSandbox](https://codesandbox.io/p/sandbox/github/saqqdy/axios-series/tree/master/examples/axios-series-demo)
+
 ## 安装
 
 ```bash
