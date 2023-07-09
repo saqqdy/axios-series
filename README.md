@@ -41,31 +41,31 @@ $ npm install axios-series --save
 
 ```js
 import axios from 'axios'
-import axiosSeries from 'axios-series'
+import wrapper from 'axios-series'
 
-const http = axiosSeries(axios, {
+const axiosSeries = wrapper(axios, {
   // unique: false,
   // orderly: true
 })
 
-export default http
+export default axiosSeries
 ```
 
 ### or axios instance
 
 ```js
 import axios from 'axios'
-import axiosSeries from 'axios-series'
+import wrapper from 'axios-series'
 
 const instance = axios.create({
   withCredentials: true
 })
-const http = axiosSeries(instance, {
+const axiosSeries = wrapper(instance, {
   // unique: false,
   // orderly: true
 })
 
-export default http
+export default axiosSeries
 ```
 
 ## Behavior
@@ -82,7 +82,7 @@ serializer options
 
 When multiple requests are made to the same interface (url is the same but data can be different) at the same time (or at short intervals), the user may only need the result of the last request, and when `unique` is set to `true`, the previous request will be cancelled.
 
-> Here's the magic: when multiple requests are made to the same interface at the same time, axiosSerios does not wait rigidly for the previous interface to return before starting the request. All requests are made at the same time, so axiosSerios has **no loss in web performance**
+> Here's the magic: when multiple requests are made to the same interface at the same time, axiosSerios does not wait rigidly for the previous interface to return before starting the request. All requests are made at the same time, so axiosSerios has **no loss in performance**
 
 - Since: `1.0.0`
 
@@ -92,12 +92,12 @@ Make 2 requests to /test/api/1 (data can be different) at the same time (or at v
 
 ```ts
 // request 1
-http({
+axiosSeries({
   url: '/test/api/1',
   data: { id: 1 }
 })
 // request 2
-http({
+axiosSeries({
   url: '/test/api/1',
   data: { id: 2 }
 })
@@ -117,12 +117,12 @@ Make 2 requests to xxx (data can be different) at the same time (or at very shor
 
 ```ts
 // request 1
-http({
+axiosSeries({
   url: '/test/api/1',
   data: { id: 1 }
 })
 // request 2
-http({
+axiosSeries({
   url: '/test/api/1',
   data: { id: 2 }
 })

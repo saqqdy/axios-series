@@ -41,31 +41,31 @@ $ npm install axios-series --save
 
 ```js
 import axios from 'axios'
-import axiosSeries from 'axios-series'
+import wrapper from 'axios-series'
 
-const http = axiosSeries(axios, {
+const axiosSeries = wrapper(axios, {
   // unique: false,
   // orderly: true
 })
 
-export default http
+export default axiosSeries
 ```
 
 ### 或者把 serializer 功能赋在 axios 实例上
 
 ```js
 import axios from 'axios'
-import axiosSeries from 'axios-series'
+import wrapper from 'axios-series'
 
 const instance = axios.create({
   withCredentials: true
 })
-const http = axiosSeries(instance, {
+const axiosSeries = wrapper(instance, {
   // unique: false,
   // orderly: true
 })
 
-export default http
+export default axiosSeries
 ```
 
 ## 使用表现
@@ -93,12 +93,12 @@ serializer 的配置
 
 ```ts
 // 请求 1
-http({
+axiosSeries({
   url: '/test/api/1',
   data: { id: 1 }
 })
 // 请求 2
-http({
+axiosSeries({
   url: '/test/api/1',
   data: { id: 2 }
 })
@@ -119,12 +119,12 @@ http({
 
 ```ts
 // 请求 1
-http({
+axiosSeries({
   url: '/test/api/1',
   data: { id: 1 }
 })
 // 请求 2
-http({
+axiosSeries({
   url: '/test/api/1',
   data: { id: 2 }
 })
