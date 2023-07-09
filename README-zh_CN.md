@@ -27,7 +27,7 @@
 
 ## 体验
 
-在线体验 axios-series 功能 [Edit in CodeSandbox](https://codesandbox.io/p/sandbox/github/saqqdy/axios-series/tree/master/examples/axios-series-demo)
+在线体验 axios-series 功能 [Edit in CodeSandbox](https://codesandbox.io/p/sandbox/github/saqqdy/axios-series/tree/master/examples)
 
 ## 安装
 

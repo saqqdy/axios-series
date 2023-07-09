@@ -46,7 +46,7 @@ When multiple requests are made to the same interface in a short period of time,
 
 ## Experience online
 
-Experience the axios-series features online [Edit in CodeSandbox](https://codesandbox.io/p/sandbox/github/saqqdy/axios-series/tree/master/examples/axios-series-demo)
+Experience the axios-series features online [Edit in CodeSandbox](https://codesandbox.io/p/sandbox/github/saqqdy/axios-series/tree/master/examples)
 
 ## Installing
 
