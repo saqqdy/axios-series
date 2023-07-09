@@ -150,7 +150,7 @@ axiosSeries({ url: '/api/1' }); | axiosSeries({ url: '/api/1' }); | axiosSeries(
 //            \___________/     |               \___________/     |               \___________/
 //                  |           |                     |           |                     |
 //              request 1       |      request 2 will wait for    |        request 3 will wait for
-//                              |     request 1 before returning  |      request 1 & 2 before returning 
+//                              |     request 1 before returning  |      request 1 & 2 before returning
 //                              |                                 |
 ```
 

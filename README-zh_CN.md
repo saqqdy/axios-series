@@ -86,6 +86,18 @@ serializer 的配置
 
 - 版本: `1.0.0`
 
+- 展示:
+
+```text
+//                                                              |
+//                                                              |
+axiosSeries({ url: '/api/1' }); axiosSeries({ url: '/api/1' }); | axiosSeries({ url: '/api/1' });
+//            \___________/                   \___________/     |               \___________/
+//                  |                               |           |                     |
+//              request 1                       request 2       | When request 3 start, 1 & 2 will be cancelled
+//                                                              |
+```
+
 - 示例:
 
 1. 向 /test/api/1 (data 可以不一样)同时(或者间隔很短时间)发起 3 次请求
@@ -111,6 +123,19 @@ axiosSeries({
 当同时(或者间隔很短时间)向同一个接口(url 一致但 data 可以不一样)请求多次，由于网络原因无法保证先执行的请求先返回结果，这个 `orderly` 参数就是用来解决这个问题的。当`orderly`设置为 true 时，先请求的一定会先于后请求的先返回结果
 
 - 版本: `1.0.0`
+
+- Show:
+
+```text
+//             ->               |                ->               |                ->
+//                              |                                 |
+axiosSeries({ url: '/api/1' }); | axiosSeries({ url: '/api/1' }); | axiosSeries({ url: '/api/1' });
+//            \___________/     |               \___________/     |               \___________/
+//                  |           |                     |           |                     |
+//              request 1       |      request 2 will wait for    |        request 3 will wait for
+//                              |     request 1 before returning  |      request 1 & 2 before returning
+//                              |                                 |
+```
 
 - 示例:
 
