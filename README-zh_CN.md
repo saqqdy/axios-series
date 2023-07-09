@@ -147,7 +147,7 @@ axios serializer 包装器
 | instance | axios or axios instance | `AxiosInstance`     | axios/axiosInstance | true     | -      |
 | options  | serializer options      | `SerializerOptions` | -                   | false    | -      |
 
-- 返回: new axios instance with serializer
+- 返回: 返回带 serializer 的 axios 实例
 
 - 示例:
 
@@ -228,7 +228,11 @@ declare type WaitingList = Record<string, Series[]>
 ### 使用 unpkg CDN
 
 ```html
+<script src="https://unpkg.com/browse/axios@1.4.0/dist/axios.min.js"></script>
 <script src="https://unpkg.com/axios-series@1.0.0/dist/index.global.prod.js"></script>
+<script>
+  const http = axiosSeries(axios)
+</script>
 ```
 
 ## 问题和支持

@@ -226,7 +226,11 @@ declare type WaitingList = Record<string, Series[]>
 ### Using unpkg CDN
 
 ```html
+<script src="https://unpkg.com/browse/axios@1.4.0/dist/axios.min.js"></script>
 <script src="https://unpkg.com/axios-series@1.0.0/dist/index.global.prod.js"></script>
+<script>
+  const http = axiosSeries(axios)
+</script>
 ```
 
 ## Support & Issues
