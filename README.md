@@ -2,7 +2,9 @@
 
 # axios-series
 
-A serializer for axios
+A tool to extend axios to return sequentially
+
+When multiple requests are made to the same interface in a short period of time, axios-series can be useful if you need to ensure that the request executed first returns the results first
 
 [![NPM version][npm-image]][npm-url]
 [![Codacy Badge][codacy-image]][codacy-url]

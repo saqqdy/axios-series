@@ -2,7 +2,7 @@
 
 # axios-series
 
-一个让 axios 支持顺序返回的扩展
+一个扩展axios按顺序返回的工具，当向同一个接口短时间内发起多次请求时，如果需要确保先执行的请求先返回结果，axios-series会很有用
 
 [![NPM version][npm-image]][npm-url]
 [![Codacy Badge][codacy-image]][codacy-url]
