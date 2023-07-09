@@ -2,10 +2,12 @@
 
 # axios-series
 
-axios-series 是一款企业级项目`axios`集成方案，采用 typescript 开发的 axios 扩展，集成了接口并发控制（可取消请求）功能
+一个让 axios 支持顺序返回的扩展
 
 [![NPM version][npm-image]][npm-url]
 [![Codacy Badge][codacy-image]][codacy-url]
+[![tree shaking][tree-shaking-image]][tree-shaking-url]
+![typescript][typescript-url]
 [![Test coverage][codecov-image]][codecov-url]
 [![npm download][download-image]][download-url]
 [![gzip][gzip-image]][gzip-url]
@@ -25,154 +27,156 @@ axios-series 是一款企业级项目`axios`集成方案，采用 typescript 开
 
 ## 安装
 
-> `axios-series`自带了最新版的 axios，可以不用安装`axios`包
-
 ```bash
 # 使用pnpm
 $ pnpm install axios-series
 
 # 使用npm
 $ npm install axios-series --save
-
-# 使用yarn
-$ yarn add axios-series
 ```
 
 ## 使用
 
-### 常规用法
+### 为 axios 赋上 serializer 功能
 
 ```js
-// {app_root}/src/plugins/axios.js
-import { getCookie, setCookie } from 'js-cool'
-import AxiosSeries from 'axios-series'
+import axios from 'axios'
+import axiosSeries from 'axios-series'
 
-/**
- * 设置请求头
- *
- * @param {object} instance AxiosInstance
- */
-function setHeaders(instance) {
-  instance.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
-}
-/**
- * 请求拦截器
- *
- * @param {object} config AxiosRequestConfig
- * @param {object} options 请求参数AxiosSeriesRequestOptions
- * @returns AxiosRequestConfig
- */
-function onRequest(config, options = {}) {
-  // some codes
-  return config
-}
-/**
- * 请求错误时执行
- *
- * @param {object} err Error
- */
-function onRequestError(err) {
-  console.error(err)
-}
-/**
- * 响应拦截器
- *
- * @param {object} res AxiosResponse<any>
- * @param {object} options 请求参数AxiosSeriesRequestOptions
- * @returns Promise<unknown>
- */
-function onResponse(res, options = {}) {
-  if (res.data.success) return res.data
-  return Promise.reject(res.data)
-}
-/**
- * 响应错误时执行
- *
- * @param {object} err Error
- */
-function onResponseError(err) {
-  console.error(err)
-}
-/**
- * 请求错误或响应错误都执行
- *
- * @param {object} err Error
- */
-function onError(err) {
-  console.error(err)
-}
-/**
- * 请求取消
- *
- * @param {object} err Error
- */
-function onCancel(err) {
-  console.error(err.message)
-}
-
-// 实例化
-const axiosSeries = new AxiosSeries({
-  unique: true, // 是否取消前面的相似请求，默认：false
-  setHeaders, // 设置请求头的方法
-  onRequest, // 请求拦截器
-  onRequestError, // 请求错误时执行
-  onResponse, // 响应拦截器
-  onResponseError, // 响应错误时执行
-  onError, // 请求错误或响应错误都执行
-  onCancel // 请求取消时的回调
+const http = axiosSeries(axios, {
+  // unique: false,
+  // orderly: true
 })
 
-export default options => {
-  // 这里设置 unique 和 orderly 优先级高于实例化时候的配置
-  options.unique = options.unique ?? false
-  // 这里的unique优先级更高
-  return axiosSeries.create(options)
-}
+export default http
 ```
 
-### 在 vue2.x 里面使用
-
-有时候我们需要在`onRequest`或`onResponse`里面使用`this`（vue 实例），可以这样写
+### 或者把 serializer 功能赋在 axios 实例上
 
 ```js
-import AxiosSeries from 'axios-series'
+import axios from 'axios'
+import axiosSeries from 'axios-series'
 
-let axiosSeries = null
-// 请求拦截器
-function onRequest(config, options = {}) {
-  // this => vueInstance
-  return config
-}
-// 响应拦截器
-function onResponse(res, options = {}) {
-  // 隐藏loading动画
-  if (this instanceof Vue) {
-    this.$loader.hide()
-  }
-  if (res.data.success) return res.data
-  return Promise.reject(res.data)
+const instance = axios.create({
+  withCredentials: true
+})
+const http = axiosSeries(instance, {
+  // unique: false,
+  // orderly: true
+})
+
+export default http
+```
+
+## Behavior
+
+## API Reference
+
+### options
+
+serializer options
+
+| Parameters | Description                                     | Type                                                   | Optional   | Required | Default |
+| ---------- | ----------------------------------------------- | ------------------------------------------------------ | ---------- | -------- | ------- |
+| unique     | make request unique, clear all similar requests | `boolean`                                              | true/false | false    | false   |
+| orderly    | resolve results orderly                         | `boolean`                                              | true/false | false    | true    |
+| onCancel   | callback function for cancel requests           | `(err: any, config: InternalAxiosRequestConfig): void` | -          | false    | null    |
+
+### axiosSeries
+
+axios serializer wrapper function
+
+- Since: `1.0.0`
+
+- Arguments:
+
+| Parameters | Description             | Type                | Optional            | Required | Default |
+| ---------- | ----------------------- | ------------------- | ------------------- | -------- | ------- |
+| instance   | axios or axios instance | `AxiosInstance`     | axios/axiosInstance | true     | -       |
+| options    | serializer options      | `SerializerOptions` | -                   | false    | -       |
+
+- Returns: new axios instance with serializer
+
+- Example:
+
+```ts
+const http = axiosSeries(instance, {
+  // unique: false,
+  // orderly: true
+})
+```
+
+- Types:
+
+```ts
+function axiosWithSeries<T = any, R = AxiosResponse<T>, D = any>(
+  config: SerializerRequestOptions<D>
+): Promise<R>
+function axiosWithSeries<T = any, R = AxiosResponse<T>, D = any>(
+  url: string,
+  config?: SerializerRequestOptions<D>
+): Promise<R>
+```
+
+### axiosSeries.clear
+
+clear all series
+
+- Since: `1.0.0`
+
+- Arguments: `none`
+
+- Returns: 'none'
+
+- Example:
+
+```ts
+const http = axiosSeries(instance, {})
+
+http.clear()
+```
+
+- Types:
+
+```ts
+type clear = () => void
+```
+
+### axiosSeries.series
+
+all waiting series
+
+- Since: `1.0.0`
+
+- Arguments: `none`
+
+- Returns: 'WaitingList'
+
+- Example:
+
+```ts
+const http = axiosSeries(instance, {})
+
+console.log(http.series) // []
+```
+
+- Types:
+
+```ts
+declare interface Series {
+  promiseKey: symbol
+  promise: Promise<any>
+  source: CancelTokenSource
+  abortController: AbortController
 }
 
-export default options => {
-  // 只需要初始化一次
-  if (!axiosSeries)
-    axiosSeries = new AxiosSeries({
-      onRequest: onRequest.bind(this),
-      onResponse: onResponse.bind(this)
-    })
-
-  // 显示loading动画
-  if (this instanceof Vue) {
-    this.$loader.show()
-  }
-  return axiosSeries.create(options)
-}
+declare type WaitingList = Record<string, Series[]>
 ```
 
 ### 使用 unpkg CDN
 
 ```html
-<script src="https://unpkg.com/axios-series@1.1.0/dist/index.global.prod.js"></script>
+<script src="https://unpkg.com/axios-series@1.0.0/dist/index.global.prod.js"></script>
 ```
 
 ## 问题和支持
@@ -187,6 +191,9 @@ Please open an issue [here](https://github.com/saqqdy/axios-series/issues).
 [npm-url]: https://npmjs.org/package/axios-series
 [codacy-image]: https://app.codacy.com/project/badge/Grade/f70d4880e4ad4f40aa970eb9ee9d0696
 [codacy-url]: https://www.codacy.com/gh/saqqdy/axios-series/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saqqdy/axios-series&utm_campaign=Badge_Grade
+[tree-shaking-image]: https://badgen.net/bundlephobia/tree-shaking/axios-series
+[tree-shaking-url]: https://bundlephobia.com/package/axios-series
+[typescript-url]: https://badgen.net/badge/icon/typescript?icon=typescript&label
 [codecov-image]: https://img.shields.io/codecov/c/github/saqqdy/axios-series.svg?style=flat-square
 [codecov-url]: https://codecov.io/github/saqqdy/axios-series?branch=master
 [download-image]: https://img.shields.io/npm/dm/axios-series.svg?style=flat-square

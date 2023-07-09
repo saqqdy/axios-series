@@ -27,154 +27,156 @@ A serializer for axios
 
 ## Installing
 
-> `axios-series` comes with the latest version of axios, so you can install it without the `axios`
-
 ```bash
 # use pnpm
 $ pnpm install axios-series
 
 # use npm
 $ npm install axios-series --save
-
-# use yarn
-$ yarn add axios-series
 ```
 
 ## Usage
 
-### General use
+### Add serializer feature to axios
 
 ```js
-// {app_root}/src/plugins/axios.js
-import { getCookie, setCookie } from 'js-cool'
-import AxiosSeries from 'axios-series'
+import axios from 'axios'
+import axiosSeries from 'axios-series'
 
-/**
- * Set the request header
- *
- * @param {object} instance AxiosInstance
- */
-function setHeaders(instance) {
-  instance.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
-}
-/**
- * Request Interceptor
- *
- * @param {object} config AxiosRequestConfig
- * @param {object} options request options AxiosSeriesRequestOptions
- * @returns AxiosRequestConfig
- */
-function onRequest(config, options = {}) {
-  // some codes
-  return config
-}
-/**
- * Execute on request error
- *
- * @param {object} err Error
- */
-function onRequestError(err) {
-  console.error(err)
-}
-/**
- * Response Interceptor
- *
- * @param {object} res AxiosResponse<any>
- * @param {object} options request options AxiosSeriesRequestOptions
- * @returns Promise<unknown>
- */
-function onResponse(res, options = {}) {
-  if (res.data.success) return res.data
-  return Promise.reject(res.data)
-}
-/**
- * Execute in response error
- *
- * @param {object} err Error
- */
-function onResponseError(err) {
-  console.error(err)
-}
-/**
- * Execute on request error & response error
- *
- * @param {object} err Error
- */
-function onError(err) {
-  console.error(err)
-}
-/**
- * Request Cancelled
- *
- * @param {object} err Error
- */
-function onCancel(err) {
-  console.error(err.message)
-}
-
-// Instantiation
-const axiosSeries = new AxiosSeries({
-  unique: true, // Whether to cancel the previous similar requests, default: false
-  setHeaders, // function for setting request headers
-  onRequest, // Request Interceptor
-  onRequestError, // Execute on request error
-  onResponse, // Response Interceptor
-  onResponseError, // Execute on response error
-  onError, // Execute on request error & response error
-  onCancel // Callback when request is cancelled
+const http = axiosSeries(axios, {
+  // unique: false,
+  // orderly: true
 })
 
-export default options => {
-  // Here set the unique and orderly priority higher than the instantiation configuration
-  options.unique = options.unique ?? false
-  // Here the unique has a higher priority
-  return axiosSeries.create(options)
-}
+export default http
 ```
 
-### Using with `vue2.0`
-
-Sometimes we need to use `this` (vue instance) inside `onRequest` or `onResponse`, we can use it like this
+### or axios instance
 
 ```js
-import AxiosSeries from 'axios-series'
+import axios from 'axios'
+import axiosSeries from 'axios-series'
 
-let axiosSeries = null
-// Request Interceptor
-function onRequest(config, options = {}) {
-  // this => vueInstance
-  return config
-}
-// Response Interceptor
-function onResponse(res, options = {}) {
-  // hide loading
-  if (this instanceof Vue) {
-    this.$loader.hide()
-  }
-  if (res.data.success) return res.data
-  return Promise.reject(res.data)
+const instance = axios.create({
+  withCredentials: true
+})
+const http = axiosSeries(instance, {
+  // unique: false,
+  // orderly: true
+})
+
+export default http
+```
+
+## Behavior
+
+## API Reference
+
+### options
+
+serializer options
+
+| Parameters | Description                                     | Type                                                   | Optional   | Required | Default |
+| ---------- | ----------------------------------------------- | ------------------------------------------------------ | ---------- | -------- | ------- |
+| unique     | make request unique, clear all similar requests | `boolean`                                              | true/false | false    | false   |
+| orderly    | resolve results orderly                         | `boolean`                                              | true/false | false    | true    |
+| onCancel   | callback function for cancel requests           | `(err: any, config: InternalAxiosRequestConfig): void` | -          | false    | null    |
+
+### axiosSeries
+
+axios serializer wrapper function
+
+- Since: `1.0.0`
+
+- Arguments:
+
+| Parameters | Description             | Type                | Optional            | Required | Default |
+| ---------- | ----------------------- | ------------------- | ------------------- | -------- | ------- |
+| instance   | axios or axios instance | `AxiosInstance`     | axios/axiosInstance | true     | -       |
+| options    | serializer options      | `SerializerOptions` | -                   | false    | -       |
+
+- Returns: new axios instance with serializer
+
+- Example:
+
+```ts
+const http = axiosSeries(instance, {
+  // unique: false,
+  // orderly: true
+})
+```
+
+- Types:
+
+```ts
+function axiosWithSeries<T = any, R = AxiosResponse<T>, D = any>(
+  config: SerializerRequestOptions<D>
+): Promise<R>
+function axiosWithSeries<T = any, R = AxiosResponse<T>, D = any>(
+  url: string,
+  config?: SerializerRequestOptions<D>
+): Promise<R>
+```
+
+### axiosSeries.clear
+
+clear all series
+
+- Since: `1.0.0`
+
+- Arguments: `none`
+
+- Returns: 'none'
+
+- Example:
+
+```ts
+const http = axiosSeries(instance, {})
+
+http.clear()
+```
+
+- Types:
+
+```ts
+type clear = () => void
+```
+
+### axiosSeries.series
+
+all waiting series
+
+- Since: `1.0.0`
+
+- Arguments: `none`
+
+- Returns: 'WaitingList'
+
+- Example:
+
+```ts
+const http = axiosSeries(instance, {})
+
+console.log(http.series) // []
+```
+
+- Types:
+
+```ts
+declare interface Series {
+  promiseKey: symbol
+  promise: Promise<any>
+  source: CancelTokenSource
+  abortController: AbortController
 }
 
-export default options => {
-  // Only need to initialize once
-  if (!axiosSeries)
-    axiosSeries = new AxiosSeries({
-      onRequest: onRequest.bind(this),
-      onResponse: onResponse.bind(this)
-    })
-
-  // show loading
-  if (this instanceof Vue) {
-    this.$loader.show()
-  }
-  return axiosSeries.create(options)
-}
+declare type WaitingList = Record<string, Series[]>
 ```
 
 ### Using unpkg CDN
 
 ```html
-<script src="https://unpkg.com/axios-series@1.1.0/dist/index.global.prod.js"></script>
+<script src="https://unpkg.com/axios-series@1.0.0/dist/index.global.prod.js"></script>
 ```
 
 ## Support & Issues

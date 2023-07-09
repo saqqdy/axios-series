@@ -1,118 +1,83 @@
+import type { AxiosInstance, AxiosResponse } from 'axios'
+import type { SerializerOptions, SerializerRequestOptions } from './types'
+export type * from './types'
 import Serializer from './serializer'
 
 /**
- * [wrapper 包装器]
- * @param  {[axios instance]} instance
- * @param  {[obj]} option
- * @return {[axios instance with cache feature]}
+ * axios serializer wrapper function
+ *
+ * @param instance - axios or axios instance
+ * @param options - serializer options
+ * @return - axios instance with serializer feature
  */
-export default function wrapper(instance, option) {
-	const series = new Serializer(option)
-
-	const unCacheMethods = ['delete', 'head', 'options', 'post', 'put', 'patch']
+export default function axiosSeries(instance: AxiosInstance, options?: SerializerOptions) {
+	const serializer = new Serializer(instance, options)
 
 	/**
-	 * [axiosWithCache axios instance Proxy]
-	 * @param  {...[any]} arg
-	 * @return {[promise]}
+	 * axios serializer factory function
+	 *
+	 * @param url - string or SerializerRequestOptions<D>
+	 * @params config - SerializerRequestOptions<D>
+	 * @return - Promise<R>
 	 */
-	function axiosWithSeries(...arg) {
-		if (arg.length === 1 && (arg[0].method === 'get' || arg[0].method === undefined)) {
-			return requestWithCacheCheck(arg[0], instance, ...arg)
+	function axiosWithSeries<T = any, R = AxiosResponse<T>, D = any>(
+		config: SerializerRequestOptions<D>
+	): Promise<R>
+	function axiosWithSeries<T = any, R = AxiosResponse<T>, D = any>(
+		url: string,
+		config?: SerializerRequestOptions<D>
+	): Promise<R>
+	function axiosWithSeries<T = any, R = AxiosResponse<T>, D = any>(
+		url: string | SerializerRequestOptions<D>,
+		config?: SerializerRequestOptions<D>
+	): Promise<R> {
+		if (typeof url !== 'string') {
+			config = url
 		} else {
-			return instance(...arg)
+			config ??= {} as SerializerRequestOptions<D>
+			config.url ??= url
 		}
+
+		return serializer.request(config)
 	}
 
+	// axiosWithSeries.defaults = instance.defaults
+	// axiosWithSeries.interceptors = instance.interceptors
+	// axiosWithSeries.getUri = instance.getUri
+	// axiosWithSeries.request = instance.request
+	// axiosWithSeries.get = instance.get
+	// axiosWithSeries.delete = instance.delete
+	// axiosWithSeries.head = instance.head
+	// axiosWithSeries.options = instance.options
+	// axiosWithSeries.post = instance.post
+	// axiosWithSeries.put = instance.put
+	// axiosWithSeries.patch = instance.patch
+	// axiosWithSeries.postForm = instance.postForm
+	// axiosWithSeries.putForm = instance.putForm
+	// axiosWithSeries.patchForm = instance.patchForm
+	// axiosWithSeries.create = instance.create
+	// not in axios instance
+	// axiosWithSeries.Cancel = instance.Cancel
+	// axiosWithSeries.CancelToken = instance.CancelToken
+	// axiosWithSeries.Axios = instance.Axios
+	// axiosWithSeries.VERSION = instance.VERSION
+	// axiosWithSeries.isCancel = instance.isCancel
+	// axiosWithSeries.all = instance.all
+	// axiosWithSeries.spread = instance.spread
+	// axiosWithSeries.isAxiosError = instance.isAxiosError
+
 	/**
-	 * [requestWithCacheCheck 对于 get 请求检查缓存，返回结果 promise]
-	 * @param  {[obj]}    option
-	 * @param  {[request handler func]}    func
-	 * @param  {...[any]} arg
-	 * @return {[promise]}
+	 * all waiting series
 	 */
-	function requestWithCacheCheck(option, func, ...arg) {
-		if (series.needCache(option)) {
-			if (series.hasCache(option)) {
-				return Promise.resolve({
-					__fromAxiosCache: true,
-					...series.getCache(option)
-				})
-			} else {
-				return func(...arg).then(response => {
-					series.setCache(option, response)
-					return response
-				})
-			}
-		} else {
-			return instance(...arg)
-		}
+	axiosWithSeries.series = serializer.waiting
+
+	/**
+	 * clear all series
+	 */
+	axiosWithSeries.clear = () => {
+		// clear all
+		serializer.clear()
 	}
 
-	/**
-	 * [get axios instance get function proxy]
-	 * @param  {...[any]} arg
-	 * @return {[promise]}
-	 */
-	axiosWithCache.get = function (...arg) {
-		if (arg.length === 1) {
-			return requestWithCacheCheck(
-				{
-					url: arg[0]
-				},
-				instance.get,
-				...arg
-			)
-		} else if (arg.length === 2) {
-			return requestWithCacheCheck(
-				{
-					url: arg[0],
-					...arg[1]
-				},
-				instance.get,
-				...arg
-			)
-		} else {
-			return instance.get(...arg)
-		}
-	}
-
-	/**
-	 * [__addFilter series instance addFilter function proxy]
-	 * @param  {[reg]} filter
-	 */
-	axiosWithCache.__addFilter = function (filter) {
-		series.addFilter(filter)
-	}
-
-	/**
-	 * [__removeFilter series instance removeFilter function proxy]
-	 * @param  {[reg]} filter
-	 */
-	axiosWithCache.__removeFilter = function (filter) {
-		series.removeFilter(filter)
-	}
-
-	/**
-	 * [series instance proxy]
-	 */
-	axiosWithCache.__series = series
-
-	/**
-	 * [__clearCache series instance clear function proxy]
-	 */
-	axiosWithCache.__clearCache = function () {
-		series.clear()
-	}
-
-	/**
-	 * [proxy axios instance functions which are no need to be cached]
-	 */
-	unCacheMethods.forEach(method => {
-		axiosWithCache[method] = function (...arg) {
-			return instance[method](...arg)
-		}
-	})
-
-	return axiosWithCache
+	return axiosWithSeries
 }

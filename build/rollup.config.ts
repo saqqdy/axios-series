@@ -5,7 +5,7 @@ import commonjs from '@rollup/plugin-commonjs'
 import terser from '@rollup/plugin-terser'
 import typescript from '@rollup/plugin-typescript'
 import json from '@rollup/plugin-json'
-import injectCode from 'rollup-plugin-inject-code'
+// import injectCode from 'rollup-plugin-inject-code'
 import filesize from 'rollup-plugin-filesize'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { banner, extensions, reporter } from './config'
@@ -31,54 +31,66 @@ export interface Options extends RollupOptions {
 	output: Output
 }
 
-const configs: Config[] = [
-	{
-		input: 'src/index.ts',
-		file: 'dist/index.esm-browser.js',
-		format: 'es',
-		browser: true,
-		env: 'development'
-	},
-	{
-		input: 'src/index.ts',
-		file: 'dist/index.esm-browser.prod.js',
-		format: 'es',
-		browser: true,
-		minify: true,
-		env: 'production'
-	},
-	{
-		input: 'src/index.ts',
-		file: 'dist/index.esm-bundler.js',
-		format: 'es',
-		env: 'development'
-	},
-	{
-		input: 'src/index.ts',
-		file: 'dist/index.mjs',
-		format: 'es',
-		env: 'development'
-	},
-	{
-		input: 'src/index.ts',
-		file: 'dist/index.global.js',
-		format: 'iife',
-		env: 'development'
-	},
-	{
-		input: 'src/index.ts',
-		file: 'dist/index.global.prod.js',
-		format: 'iife',
-		minify: true,
-		env: 'production'
-	},
-	{
-		input: 'src/index.ts',
-		file: 'dist/index.cjs.js',
-		format: 'cjs',
-		env: 'development'
-	}
-]
+const IS_WATCH = process.env.ROLLUP_WATCH
+
+const configs: Config[] = IS_WATCH
+	? [
+			{
+				input: 'src/index.ts',
+				file: 'dist/index.esm-browser.js',
+				format: 'es',
+				browser: true,
+				env: 'development'
+			},
+			{
+				input: 'src/index.ts',
+				file: 'dist/index.cjs.js',
+				format: 'cjs',
+				env: 'development'
+			}
+	  ]
+	: [
+			{
+				input: 'src/index.ts',
+				file: 'dist/index.esm-browser.js',
+				format: 'es',
+				browser: true,
+				env: 'development'
+			},
+			{
+				input: 'src/index.ts',
+				file: 'dist/index.esm-browser.prod.js',
+				format: 'es',
+				browser: true,
+				minify: true,
+				env: 'production'
+			},
+			{
+				input: 'src/index.ts',
+				file: 'dist/index.esm-bundler.js',
+				format: 'es',
+				env: 'development'
+			},
+			{
+				input: 'src/index.ts',
+				file: 'dist/index.global.js',
+				format: 'iife',
+				env: 'development'
+			},
+			{
+				input: 'src/index.ts',
+				file: 'dist/index.global.prod.js',
+				format: 'iife',
+				minify: true,
+				env: 'production'
+			},
+			{
+				input: 'src/index.ts',
+				file: 'dist/index.cjs.js',
+				format: 'cjs',
+				env: 'development'
+			}
+	  ]
 
 function createEntries() {
 	return configs.map(createEntry)
@@ -102,7 +114,9 @@ function createEntry(config: Config) {
 			exports: 'auto',
 			extend: true,
 			plugins: [],
-			globals: {}
+			globals: {
+				axios: 'axios'
+			}
 		},
 		onwarn: (msg: any, warn) => {
 			if (!/Circular/.test(msg)) {
@@ -114,16 +128,16 @@ function createEntry(config: Config) {
 	if (isGlobalBuild || config.browser) _config.output.banner = banner
 
 	if (isGlobalBuild) {
-		_config.output.name = _config.output.name || 'AxiosSeries'
-		_config.output.plugins.push(
-			injectCode({
-				path: './node_modules/axios/dist/axios.min.js'
-			})
-		)
+		_config.output.name = _config.output.name || 'axiosSeries'
+		// _config.output.plugins.push(
+		// 	injectCode({
+		// 		path: './node_modules/axios/dist/axios.min.js'
+		// 	})
+		// )
 	}
 
 	if (!isGlobalBuild) {
-		_config.external.push('core-js', 'js-cool')
+		_config.external.push('core-js', 'js-cool', 'tslib')
 	}
 
 	_config.plugins.push(nodeResolve(), commonjs(), json())
