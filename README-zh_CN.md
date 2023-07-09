@@ -68,36 +68,88 @@ const http = axiosSeries(instance, {
 export default http
 ```
 
-## Behavior
+## 使用表现
 
-## API Reference
+serializer 的配置
 
-### options
+| 参数     | 描述                                            | 类型                                                   | 可选值     | 是否必填 | 默认值 |
+| -------- | ----------------------------------------------- | ------------------------------------------------------ | ---------- | -------- | ------ |
+| unique   | make request unique, clear all similar requests | `boolean`                                              | true/false | false    | false  |
+| orderly  | resolve results orderly                         | `boolean`                                              | true/false | false    | true   |
+| onCancel | callback function for cancel requests           | `(err: any, config: InternalAxiosRequestConfig): void` | -          | false    | null   |
 
-serializer options
+### unique
 
-| Parameters | Description                                     | Type                                                   | Optional   | Required | Default |
-| ---------- | ----------------------------------------------- | ------------------------------------------------------ | ---------- | -------- | ------- |
-| unique     | make request unique, clear all similar requests | `boolean`                                              | true/false | false    | false   |
-| orderly    | resolve results orderly                         | `boolean`                                              | true/false | false    | true    |
-| onCancel   | callback function for cancel requests           | `(err: any, config: InternalAxiosRequestConfig): void` | -          | false    | null    |
+当向同一个接口(url 一致但 data 可以不一样)同时(或者间隔很短时间)发起多次请求时，可能用户只需要最后一次的请求结果，当 `unique` 设置为 `true` 时，前面的请求会被取消
+
+> 神奇的是：当向同一个接口同时发起多次请求时，axiosSerios 并不是死板地等待上一个接口返回之后才开始请求。所有的请求都是同时发起的，所以 axiosSerios 对于**网页性能是没有损失的**
+
+- 版本: `1.0.0`
+
+- 示例:
+
+1. 向 /test/api/1 (data 可以不一样)同时(或者间隔很短时间)发起 3 次请求
+   . 设置 `unique` 为 `true`
+
+```ts
+// 请求 1
+http({
+  url: '/test/api/1',
+  data: { id: 1 }
+})
+// 请求 2
+http({
+  url: '/test/api/1',
+  data: { id: 2 }
+})
+
+// 请求1会被取消
+```
+
+### orderly
+
+当同时(或者间隔很短时间)向同一个接口(url 一致但 data 可以不一样)请求多次，由于网络原因无法保证先执行的请求先返回结果，这个 `orderly` 参数就是用来解决这个问题的。当`orderly`设置为 true 时，先请求的一定会先于后请求的先返回结果
+
+- 版本: `1.0.0`
+
+- 示例:
+
+1. 向 /test/api/1 (data 可以不一样)同时(或者间隔很短时间)发起 3 次请求
+   . 设置 `orderly` 为 true
+
+```ts
+// 请求 1
+http({
+  url: '/test/api/1',
+  data: { id: 1 }
+})
+// 请求 2
+http({
+  url: '/test/api/1',
+  data: { id: 2 }
+})
+
+// 请求1一定会先于请求2返回结果
+```
+
+## API 参考
 
 ### axiosSeries
 
-axios serializer wrapper function
+axios serializer 包装器
 
-- Since: `1.0.0`
+- 版本: `1.0.0`
 
-- Arguments:
+- 参数:
 
-| Parameters | Description             | Type                | Optional            | Required | Default |
-| ---------- | ----------------------- | ------------------- | ------------------- | -------- | ------- |
-| instance   | axios or axios instance | `AxiosInstance`     | axios/axiosInstance | true     | -       |
-| options    | serializer options      | `SerializerOptions` | -                   | false    | -       |
+| 参数     | 描述                    | 类型                | 可选值              | 是否必填 | 默认值 |
+| -------- | ----------------------- | ------------------- | ------------------- | -------- | ------ |
+| instance | axios or axios instance | `AxiosInstance`     | axios/axiosInstance | true     | -      |
+| options  | serializer options      | `SerializerOptions` | -                   | false    | -      |
 
-- Returns: new axios instance with serializer
+- 返回: new axios instance with serializer
 
-- Example:
+- 示例:
 
 ```ts
 const http = axiosSeries(instance, {
@@ -106,7 +158,7 @@ const http = axiosSeries(instance, {
 })
 ```
 
-- Types:
+- 类型:
 
 ```ts
 function axiosWithSeries<T = any, R = AxiosResponse<T>, D = any>(
@@ -120,15 +172,15 @@ function axiosWithSeries<T = any, R = AxiosResponse<T>, D = any>(
 
 ### axiosSeries.clear
 
-clear all series
+清理所有的请求队列
 
-- Since: `1.0.0`
+- 版本: `1.0.0`
 
-- Arguments: `none`
+- 参数: `none`
 
-- Returns: 'none'
+- 返回: 'none'
 
-- Example:
+- 示例:
 
 ```ts
 const http = axiosSeries(instance, {})
@@ -136,7 +188,7 @@ const http = axiosSeries(instance, {})
 http.clear()
 ```
 
-- Types:
+- 类型:
 
 ```ts
 type clear = () => void
@@ -144,15 +196,15 @@ type clear = () => void
 
 ### axiosSeries.series
 
-all waiting series
+所有的请求队列
 
-- Since: `1.0.0`
+- 版本: `1.0.0`
 
-- Arguments: `none`
+- 参数: `none`
 
-- Returns: 'WaitingList'
+- 返回: 'WaitingList'
 
-- Example:
+- 示例:
 
 ```ts
 const http = axiosSeries(instance, {})
@@ -160,7 +212,7 @@ const http = axiosSeries(instance, {})
 console.log(http.series) // []
 ```
 
-- Types:
+- 类型:
 
 ```ts
 declare interface Series {

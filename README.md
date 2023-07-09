@@ -70,10 +70,6 @@ export default http
 
 ## Behavior
 
-## API Reference
-
-### options
-
 serializer options
 
 | Parameters | Description                                     | Type                                                   | Optional   | Required | Default |
@@ -81,6 +77,60 @@ serializer options
 | unique     | make request unique, clear all similar requests | `boolean`                                              | true/false | false    | false   |
 | orderly    | resolve results orderly                         | `boolean`                                              | true/false | false    | true    |
 | onCancel   | callback function for cancel requests           | `(err: any, config: InternalAxiosRequestConfig): void` | -          | false    | null    |
+
+### unique
+
+When multiple requests are made to the same interface (url is the same but data can be different) at the same time (or at short intervals), the user may only need the result of the last request, and when `unique` is set to `true`, the previous request will be cancelled.
+
+> Here's the magic: when multiple requests are made to the same interface at the same time, axiosSerios does not wait rigidly for the previous interface to return before starting the request. All requests are made at the same time, so axiosSerios has **no loss in web performance**
+
+- Since: `1.0.0`
+
+- Example:
+
+Make 2 requests to /test/api/1 (data can be different) at the same time (or at very short intervals). set `unique` to `true`
+
+```ts
+// request 1
+http({
+  url: '/test/api/1',
+  data: { id: 1 }
+})
+// request 2
+http({
+  url: '/test/api/1',
+  data: { id: 2 }
+})
+
+// request 1 will be cancelled
+```
+
+### orderly
+
+When multiple requests are launched to the same interface (url is the same but data can be different) at the same time (or a short interval), the first request executed cannot be guaranteed to return the result first due to network reasons, and this `orderly` parameter is used to solve this problem. When `orderly` is set to true, the first request will definitely return the result before the second request.
+
+- Since: `1.0.0`
+
+- Example:
+
+Make 2 requests to xxx (data can be different) at the same time (or at very short intervals). set `orderly` to `true`
+
+```ts
+// request 1
+http({
+  url: '/test/api/1',
+  data: { id: 1 }
+})
+// request 2
+http({
+  url: '/test/api/1',
+  data: { id: 2 }
+})
+
+// request 1 will definitely return the result before the request 2
+```
+
+## API Reference
 
 ### axiosSeries
 

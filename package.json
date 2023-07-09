@@ -1,7 +1,7 @@
 {
 	"name": "axios-series",
 	"description": "A serializer for axios",
-	"version": "1.0.0-beta.1",
+	"version": "1.0.0-beta.2",
 	"packageManager": "pnpm@8.6.5",
 	"main": "dist/index.cjs.js",
 	"module": "dist/index.esm-bundler.js",
