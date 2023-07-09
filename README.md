@@ -104,6 +104,18 @@ When multiple requests are made to the same interface (url is the same but data 
 
 - Since: `1.0.0`
 
+- Show:
+
+```text
+//                                                              |
+//                                                              |
+axiosSeries({ url: '/api/1' }); axiosSeries({ url: '/api/1' }); | axiosSeries({ url: '/api/1' });
+//            \___________/                   \___________/     |               \___________/
+//                  |                               |           |                     |
+//              request 1                       request 2       | When request 3 start, 1 & 2 will be cancelled
+//                                                              |
+```
+
 - Example:
 
 Make 2 requests to /test/api/1 (data can be different) at the same time (or at very short intervals). set `unique` to `true`
@@ -128,6 +140,19 @@ axiosSeries({
 When multiple requests are launched to the same interface (url is the same but data can be different) at the same time (or a short interval), the first request executed cannot be guaranteed to return the result first due to network reasons, and this `orderly` parameter is used to solve this problem. When `orderly` is set to true, the first request will definitely return the result before the second request.
 
 - Since: `1.0.0`
+
+- Show:
+
+```text
+//             ->               |                ->               |                ->
+//                              |                                 |
+axiosSeries({ url: '/api/1' }); | axiosSeries({ url: '/api/1' }); | axiosSeries({ url: '/api/1' });
+//            \___________/     |               \___________/     |               \___________/
+//                  |           |                     |           |                     |
+//              request 1       |      request 2 will wait for    |        request 3 will wait for
+//                              |     request 1 before returning  |      request 1 & 2 before returning 
+//                              |                                 |
+```
 
 - Example:
 
