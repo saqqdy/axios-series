@@ -93,7 +93,7 @@ devDependencies:
     version: 3.0.2(debug@4.3.4)(js-cool@5.1.0)
   rm-all:
     specifier: ^1.1.0
-    version: 1.1.0(js-cool@5.1.0)
+    version: 1.1.1(js-cool@5.1.0)
   rollup:
     specifier: ^3.26.2
     version: 3.26.2
@@ -2129,8 +2129,8 @@ packages:
     resolution: {integrity: sha512-cj0gMQ+yE4jNmCrtz1TEXYMX+zNOJEGxGy1YzG2IBek0ndKszIYRxyLbIz3URh1MSTMGT+f9Zxy3iARB8vVP9g==}
     dev: true
 
-  /@node-kit/extra.fs@3.1.0:
-    resolution: {integrity: sha512-kyX2s8zssY89XgPL+wemYVB45s94t5gFJs6ntLc/zVK8petVP/OUOLtSVONeDuDvc9RWIkTyYgWB4dr1AXZSAA==}
+  /@node-kit/extra.fs@3.1.1:
+    resolution: {integrity: sha512-pKwNgj+v+0CMh5IAjVN9HeyMKonQtx3xf/KF6K0o51KWIKIvTGl2b2jMN4tgNXd1cdachfEe01GSr0z6/T+cwA==}
     hasBin: true
     dev: true
 
@@ -7173,14 +7173,14 @@ packages:
       glob: 7.2.3
     dev: true
 
-  /rm-all@1.1.0(js-cool@5.1.0):
-    resolution: {integrity: sha512-/MvdqFvQMNbNVq8raSwwLL1eU+LtlGMF01lCoX0xtnuSddFfER227UZOO2zpUhXoB+ydG5RwyLLbM9FrIWkamg==}
+  /rm-all@1.1.1(js-cool@5.1.0):
+    resolution: {integrity: sha512-5n3SiDtp0BxHX485YhfbxR1RLtR9KlRTCj0hHahTufYEhUyE9ydy1nRtP4OG9kXifsYClu43gwkqcOnjpz/HPQ==}
     engines: {node: '>=12.20'}
     hasBin: true
     peerDependencies:
       js-cool: '>= 2'
     dependencies:
-      '@node-kit/extra.fs': 3.1.0
+      '@node-kit/extra.fs': 3.1.1
       commander: 11.0.0
       js-cool: 5.1.0
     dev: true
