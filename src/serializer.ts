@@ -48,6 +48,7 @@ export default class Serializer {
 		// 	config ??= {} as SerializerRequestOptions<D>
 		// 	key = url
 		// }
+		const { unique = this.unique, orderly = this.orderly, url = '' } = config
 		const promiseKey = Symbol('promiseKey')
 		const abortController = new AbortController()
 		const source: CancelTokenSource = axios.CancelToken.source()
@@ -55,15 +56,15 @@ export default class Serializer {
 		config.cancelToken = source.token
 		config.signal = abortController.signal
 
-		this.unique && this.clear(config.url!)
+		unique && this.clear(url)
 
 		const promise = new Promise((resolve, reject) => {
 			this.axiosInstance(config)
-				.then(res => {
-					if (!this.orderly) resolve(res as AxiosResponse<any, any>)
+				.then((res: any) => {
+					if (!orderly) resolve(res)
 					else
-						this.wait(config.url!, promiseKey).then(() => {
-							resolve(res as AxiosResponse<any, any>)
+						this.wait(url, promiseKey).then(() => {
+							resolve(res)
 						})
 				})
 				.catch(err => {
@@ -73,14 +74,12 @@ export default class Serializer {
 					else reject(err)
 				})
 				.finally(() => {
-					const index = this.waiting[config.url!].findIndex(
-						el => el.promiseKey === promiseKey
-					)
-					index > -1 && this.waiting[config.url!].splice(index, 1)
+					const index = this.waiting[url].findIndex(el => el.promiseKey === promiseKey)
+					index > -1 && this.waiting[url].splice(index, 1)
 				})
 		})
 
-		this.add(config.url!, {
+		this.add(url, {
 			promiseKey,
 			promise,
 			source,
