@@ -19,7 +19,7 @@ export interface Series {
 	promiseKey: symbol
 	promise: Promise<any>
 	source: CancelTokenSource
-	abortController: AbortController
+	abortController?: AbortController
 }
 
 export type WaitingList = Record<string, Series[]>

@@ -50,11 +50,14 @@ export default class Serializer {
 		// }
 		const { unique = this.unique, orderly = this.orderly, url = '' } = config
 		const promiseKey = Symbol('promiseKey')
-		const abortController = new AbortController()
 		const source: CancelTokenSource = axios.CancelToken.source()
+		let abortController
 		// config.requestOptions = extend(true, {}, options)
 		config.cancelToken = source.token
-		config.signal = abortController.signal
+		if (typeof AbortController === 'function') {
+			abortController = new AbortController()
+			config.signal = abortController.signal
+		}
 
 		unique && this.clear(url)
 
@@ -102,7 +105,7 @@ export default class Serializer {
 
 				for (const series of seriesList) {
 					series.source.cancel('request canceled')
-					series.abortController.abort()
+					series.abortController && series.abortController.abort()
 				}
 				this.waiting[url] = []
 			}
