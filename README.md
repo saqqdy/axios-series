@@ -265,7 +265,7 @@ declare interface Series {
   promiseKey: symbol
   promise: Promise<any>
   source: CancelTokenSource
-  abortController: AbortController
+  abortController?: AbortController
 }
 
 declare type WaitingList = Record<string, Series[]>
